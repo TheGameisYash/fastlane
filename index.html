@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>FastLane Garage - Manager Dashboard</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    :root {
+      --bg-color: #1f1f1f;
+      --container-bg: #2b2b2b;
+      --text-color: #f0f0f0;
+      --accent: #4caf50;
+      --danger: #dc3545;
+      --input-bg: #3a3a3a;
+      --border: #444;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background-color: var(--container-bg);
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.4);
+    }
+
+    h2, h3 {
+      text-align: center;
+      color: var(--accent);
+      margin-bottom: 20px;
+    }
+
+    label {
+      margin-top: 15px;
+      display: block;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--text-color);
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    input[type="checkbox"] {
+      width: auto;
+      margin-right: 8px;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 12px;
+      width: 100%;
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+
+    .button-group button {
+      flex: 1;
+    }
+
+    .button-group .danger {
+      background-color: var(--danger);
+    }
+
+    .button-group .danger:hover {
+      background-color: #c82333;
+    }
+
+    table {
+      margin-top: 25px;
+      width: 100%;
+      border-collapse: collapse;
+      background-color: #1a1a1a;
+      color: var(--text-color);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      text-align: center;
+    }
+
+    th {
+      background-color: #333;
+      font-weight: bold;
+    }
+
+    tr:hover {
+      background-color: #292929;
+    }
+
+    #mainApp {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>FastLane Garage - Manager Dashboard</h2>
+
+    <div id="authSection">
+      <h3>Manager Login</h3>
+      <input type="email" id="email" placeholder="Email">
+      <input type="password" id="password" placeholder="Password">
+      <button onclick="login()">Login</button>
+    </div>
+
+    <div id="mainApp">
+      <form id="repairForm">
+        <label>Employee</label>
+        <select id="employee" required>
+          <option value="">Select</option>
+          <option value="John">John</option>
+          <option value="Raj">Raj</option>
+          <option value="Ali">Ali</option>
+        </select>
+
+        <label>Date</label>
+        <input type="date" id="date" required>
+
+        <label>Repairs Done</label>
+        <input type="number" id="repairs" min="0" required oninput="updateCost()">
+
+        <p><strong>Calculated Cost:</strong> ₹<span id="calculatedCost">0</span></p>
+
+        <label>
+          <input type="checkbox" id="approved"> Approved by Manager
+        </label>
+
+        <button type="submit">Submit Report</button>
+      </form>
+
+      <div class="button-group">
+        <button onclick="exportCSV()">Export CSV</button>
+        <button onclick="generatePDF()">Generate PDF</button>
+        <button onclick="clearReports()" class="danger">Clear All</button>
+      </div>
+
+      <table id="reportTable">
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th>Date</th>
+            <th>Repairs</th>
+            <th>Cost</th>
+            <th>Approved</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCxbhvZwPoC-9ORjS7V1pv2AGumAXNBREs",
+      authDomain: "fastlane-garage.firebaseapp.com",
+      projectId: "fastlane-garage",
+      storageBucket: "fastlane-garage.appspot.com",
+      messagingSenderId: "407672210110",
+      appId: "1:407672210110:web:ed86fb9f861d30ddb454ef",
+      measurementId: "G-08WJHYHFD2"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const form = document.getElementById("repairForm");
+    const tbody = document.querySelector("tbody");
+
+    function login() {
+      const email = document.getElementById("email").value;
+      const pass = document.getElementById("password").value;
+      signInWithEmailAndPassword(auth, email, pass)
+        .then(() => {})
+        .catch(err => alert("Login failed: " + err.message));
+    }
+
+    window.login = login;
+
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        document.getElementById("authSection").style.display = "none";
+        document.getElementById("mainApp").style.display = "block";
+        loadReports();
+      }
+    });
+
+    function updateCost() {
+      const repairs = parseInt(document.getElementById("repairs").value) || 0;
+      const cost = repairs * 700;
+      document.getElementById("calculatedCost").textContent = cost;
+    }
+
+    window.updateCost = updateCost;
+
+    form.addEventListener("submit", async e => {
+      e.preventDefault();
+
+      const repairs = parseInt(document.getElementById("repairs").value) || 0;
+      const cost = repairs * 700;
+
+      const report = {
+        employee: document.getElementById("employee").value,
+        date: document.getElementById("date").value,
+        repairs: repairs,
+        cost: cost,
+        approved: document.getElementById("approved").checked
+      };
+
+      if (!report.approved) return alert("Please approve before submitting.");
+
+      await addDoc(collection(db, "reports"), report);
+      form.reset();
+      document.getElementById("calculatedCost").textContent = "0";
+      loadReports();
+      alert("Report submitted!");
+    });
+
+    async function loadReports() {
+      const snapshot = await getDocs(collection(db, "reports"));
+      tbody.innerHTML = "";
+      snapshot.forEach(docSnap => {
+        const r = docSnap.data();
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${r.employee}</td>
+          <td>${r.date}</td>
+          <td>${r.repairs}</td>
+          <td>₹${r.cost}</td>
+          <td>${r.approved ? "✔️" : "❌"}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    async function exportCSV() {
+      const snapshot = await getDocs(collection(db, "reports"));
+      if (snapshot.empty) return alert("No reports.");
+      let csv = "Employee,Date,Repairs,Cost,Approved\n";
+      snapshot.forEach(docSnap => {
+        const r = docSnap.data();
+        csv += `${r.employee},${r.date},${r.repairs},${r.cost},${r.approved ? "Yes" : "No"}\n`;
+      });
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "FastLane_Reports.csv";
+      link.click();
+    }
+
+    window.generatePDF = async function () {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF();
+      let y = 20;
+
+      pdf.text("FastLane Garage - Report Summary", 20, y);
+      y += 10;
+
+      const snapshot = await getDocs(collection(db, "reports"));
+      snapshot.forEach(docSnap => {
+        const r = docSnap.data();
+        pdf.text(
+          `Employee: ${r.employee}, Date: ${r.date}, Repairs: ${r.repairs}, ₹${r.cost}, Approved: ${r.approved ? "Yes" : "No"}`,
+          10, y
+        );
+        y += 10;
+      });
+
+      pdf.save("FastLane_Reports.pdf");
+    }
+
+    window.clearReports = async function () {
+      if (!confirm("Delete all reports?")) return;
+      const snapshot = await getDocs(collection(db, "reports"));
+      for (const docSnap of snapshot.docs) {
+        await deleteDoc(doc(db, "reports", docSnap.id));
+      }
+      loadReports();
+    }
+  </script>
+</body>
+</html>

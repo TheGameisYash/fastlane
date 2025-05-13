@@ -1,0 +1,132 @@
+:root {
+    --bg-color: #1f1f1f;
+    --container-bg: #2b2b2b;
+    --text-color: #f0f0f0;
+    --accent: #4caf50;
+    --danger: #dc3545;
+    --input-bg: #3a3a3a;
+    --border: #444;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 800px;
+    margin: auto;
+    background-color: var(--container-bg);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.4);
+}
+
+h2, h3 {
+    text-align: center;
+    color: var(--accent);
+    margin-bottom: 20px;
+}
+
+label {
+    margin-top: 15px;
+    display: block;
+}
+
+input, select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    color: var(--text-color);
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+input[type="checkbox"] {
+    width: auto;
+    margin-right: 8px;
+}
+
+button {
+    margin-top: 15px;
+    padding: 12px;
+    width: 100%;
+    background-color: var(--accent);
+    color: white;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.button-group button {
+    flex: 1;
+}
+
+.button-group .danger {
+    background-color: var(--danger);
+}
+
+.button-group .danger:hover {
+    background-color: #c82333;
+}
+
+table {
+    margin-top: 25px;
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #1a1a1a;
+    color: var(--text-color);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+th, td {
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+}
+
+th {
+    background-color: #333;
+    font-weight: bold;
+}
+
+tr:hover {
+    background-color: #292929;
+}
+
+#mainApp {
+    display: none;
+}
+
+#logoutButton {
+    background-color: #dc3545;
+    color: white;
+}
+
+#logoutButton:hover {
+    background-color: #c82333;
+}
+
+#editForm {
+    display: none;
+}

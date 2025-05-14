@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastLane Garage - Employee Page</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h2>FastLane Garage - Employee Page</h2>
+        <h3>Submit your repair reports</h3>
+
+        <!-- Weekly Top Employee Section -->
+        <div id="topEmployee" class="fame-box">
+            <h3>🏆 Weekly Top Employee</h3>
+            <p id="topEmployeeName">Loading...</p>
+        </div>
+
+        <!-- Report Submission Form -->
+        <form id="reportForm">
+            <label for="employee">Employee</label>
+            <select id="employee" required>
+                <option value="">Select Employee</option>
+                <!-- Employees will be dynamically populated here -->
+            </select>
+
+            <label for="date">Date</label>
+            <input type="date" id="date" required>
+
+            <label for="repairs">Number of Repairs</label>
+            <input type="number" id="repairs" required>
+
+            <p>Total Cost: ₹<span id="calculatedCost">0</span></p>
+
+            <button type="submit">Submit Report</button>
+        </form>
+
+        <!-- Login Button (Redirects to login page) -->
+        <button onclick="window.location.href='login.html'">Login as Manager</button>
+
+        <!-- Report Display Table -->
+
+        <!-- Filter by Employee -->
+        <div class="filter-section">
+            <label for="employeeFilter">Filter by Employee</label>
+            <select id="employeeFilter">
+                <option value="">All Employees</option>
+                <!-- Options will be populated dynamically -->
+            </select>
+        </div>
+
+        
+        <h3>Reports</h3>
+        <table id="reportTable">
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Date</th>
+                    <th>Repairs</th>
+                    <th>Cost</th>
+                    <th>Approved</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+            
+        </table>
+        <div class="totals-inline">
+            <span>Total Repairs: <strong id="totalRepairs">0</strong></span>
+            <span>Total Cost: ₹<strong id="totalCost">0</strong></span>
+        </div>
+
+        
+    </div>
+
+    <footer class="footer-bar">
+     <p>Designed and developed by <strong>Oscar Madrazo</strong>. All rights reserved © <strong>FastLane</strong>.</p>
+    </footer>
+
+
+    
+
+
+    
+
+    <!-- Firebase Auth and Firestore Scripts -->
+    <script type="module" src="firebase.js"></script>
+    <script type="module" src="login.js"></script>
+    <script type="module" src="main.js"></script>
+</body>
+</html>
